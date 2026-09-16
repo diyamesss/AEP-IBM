@@ -212,8 +212,8 @@
   }
 }
 
-/* ── Card grid ───────────────────────────────────────────────────────────
-   2-col on desktop; full-width cards (.chartCardFull) span both columns. */
+/* ── Card grid — strict uniform 2-column layout ──────────────────────────
+   Every card is identical width. No card spans the full row.             */
 .cardGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -241,11 +241,6 @@
       0 14px 36px rgba(0, 0, 0, 0.10);
     transform: translateY(-3px);
   }
-}
-
-/* Full-width variant — spans both columns */
-.chartCardFull {
-  grid-column: 1 / -1;
 }
 
 /* ── Card header (title + description) ──────────────────────────────────── */
@@ -313,16 +308,11 @@
 .chartImg {
   width: 100%;
   height: auto;
-  min-height: 300px;
+  min-height: 340px;
   display: block;
   border-radius: 10px;
   object-fit: contain;
   object-position: center;
-}
-
-/* Wider charts get even more height when they span full width */
-.chartCardFull .chartImg {
-  min-height: 360px;
 }
 
 /* ── Extra assets ──────────────────────────────────────────────────────── */
@@ -486,15 +476,11 @@
   .cardGrid { gap: 20px; }
 }
 
-/* Tablet — drop to single column at 720px */
-@media (max-width: 720px) {
+/* Tablet — drop to single column at 660px */
+@media (max-width: 660px) {
   .cardGrid {
     grid-template-columns: 1fr;
     gap: 18px;
-  }
-  /* Full-width modifier is a no-op in single-column layout */
-  .chartCardFull {
-    grid-column: auto;
   }
 }
 
@@ -516,12 +502,10 @@
   .chartNavItem { font-size: 0.775rem; padding: 6px 15px; }
 
   .chartCard { border-radius: 18px; }
-  .chartCardFull { grid-column: auto; }
   .cardHeader { padding: 1.625rem 1.625rem 1.375rem; }
   .cardChartArea { padding: 1.375rem 1.625rem 2rem; }
   .cardTitle { font-size: 1.125rem; }
-  .chartImg { min-height: 220px; }
-  .chartCardFull .chartImg { min-height: 260px; }
+  .chartImg { min-height: 240px; }
 
   .highlightsSection { padding: 3rem 0 3.5rem; }
   .highlightsInner { padding: 0 1.25rem; }
@@ -539,6 +523,5 @@
   .analyticsInner { padding: 0 1rem; }
   .highlightsInner { padding: 0 1rem; }
   .chartNavItem { white-space: normal; text-align: center; }
-  .chartImg { min-height: 180px; }
-  .chartCardFull .chartImg { min-height: 200px; }
+  .chartImg { min-height: 200px; }
 }
