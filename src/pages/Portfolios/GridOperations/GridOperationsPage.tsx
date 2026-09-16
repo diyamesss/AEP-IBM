@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import styles from './GridOperationsPage.module.scss'
 import gridOperationsHero from './assets/GridOperations.png'
 import ibmImg from './assets/IBM.jpg'
@@ -106,8 +106,60 @@ function ChartCardPanel({ card }: { card: ChartCard }) {
   )
 }
 
+/* ── Sliding-pill hook ─────────────────────────────────────────────────── */
+function useSlidingPill(
+  refs: React.RefObject<HTMLButtonElement | null>[],
+  activeIndex: number
+) {
+  const [pillStyle, setPillStyle] = useState<React.CSSProperties>({})
+  const [pillReady, setPillReady] = useState(false)
+
+  function measure(idx: number) {
+    const btn = refs[idx]?.current
+    if (!btn) return
+    const parent = btn.parentElement
+    if (!parent) return
+    const pr = parent.getBoundingClientRect()
+    const br = btn.getBoundingClientRect()
+    setPillStyle({ left: br.left - pr.left, width: br.width })
+  }
+
+  useLayoutEffect(() => {
+    measure(activeIndex)
+    const id = requestAnimationFrame(() => setPillReady(true))
+    return () => cancelAnimationFrame(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (pillReady) measure(activeIndex)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex])
+
+  useEffect(() => {
+    function onResize() { measure(activeIndex) }
+    window.addEventListener('resize', onResize, { passive: true })
+    return () => window.removeEventListener('resize', onResize)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex])
+
+  return { pillStyle, pillReady }
+}
+
 export default function GridOperationsPage() {
   const videoFiles = Object.values(videos) as string[]
+
+  const [activePillIdx, setActivePillIdx] = useState(0)
+  const navBtnRefs = [
+    useRef<HTMLButtonElement>(null),
+    useRef<HTMLButtonElement>(null),
+  ]
+  const { pillStyle, pillReady } = useSlidingPill(navBtnRefs, activePillIdx)
+
+  function handleNavClick(idx: number, sectionId: string) {
+    setActivePillIdx(idx)
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+  }
 
   return (
     <div className={styles.page} id="top">
@@ -121,14 +173,31 @@ export default function GridOperationsPage() {
         </div>
       </div>
 
-      <nav className={styles.navBar} aria-label="Page sections">
-        {NAV_LINKS.map(link => (
-          <button key={link.id} className={styles.navLink}
-            onClick={() => document.getElementById(link.id)?.scrollIntoView({ behavior: 'smooth' })}>
-            {link.label}
-          </button>
-        ))}
-      </nav>
+      {/* ── Sliding-pill section nav — directly below hero ── */}
+      <div className={styles.segWrap}>
+        <nav
+          className={styles.segControl}
+          role="navigation"
+          aria-label="Page sections"
+        >
+          <span
+            className={`${styles.segPill}${pillReady ? ` ${styles.segPillAnimated}` : ''}`}
+            style={pillStyle}
+            aria-hidden="true"
+          />
+          {NAV_LINKS.map((link, idx) => (
+            <button
+              key={link.id}
+              ref={navBtnRefs[idx]}
+              className={`${styles.segBtn}${activePillIdx === idx ? ` ${styles.segBtnActive}` : ''}`}
+              aria-pressed={activePillIdx === idx}
+              onClick={() => handleNavClick(idx, link.id)}
+            >
+              {link.label}
+            </button>
+          ))}
+        </nav>
+      </div>
 
       <PortfolioIntroduction portfolioName={PORTFOLIO_NAME} showcase={SHOWCASE} />
       <PortfolioSuccessStory successStory={SHOWCASE} />

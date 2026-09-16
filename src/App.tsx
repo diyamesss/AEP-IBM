@@ -7,6 +7,7 @@ import { ContentProvider } from './context/ContentContext'
 import ScrollToTop from './components/ScrollToTop'
 
 const HomePage                = lazy(() => import('./pages/Home/HomePage'))
+const EngagementsPage         = lazy(() => import('./pages/Engagements/EngagementsPage'))
 const PortfoliosPage          = lazy(() => import('./pages/Portfolios/PortfoliosPage'))
 const ProjectsPage            = lazy(() => import('./pages/Projects/ProjectsPage'))
 const IbmHolidaysPage         = lazy(() => import('./pages/IbmHolidays/IbmHolidaysPage'))
@@ -46,7 +47,9 @@ export default function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/home" replace />} />
               <Route path="/home" element={<HomePage />} />
-              <Route path="/portfolios" element={<PortfoliosPage />} />
+              {/* Engagements page — Portfolio view with sliding-pill nav */}
+              <Route path="/portfolios" element={<EngagementsPage />} />
+              {/* Keep legacy standalone pages accessible but point index to unified page */}
               <Route path="/portfolios/wam" element={<WAMPage />} />
               <Route path="/portfolios/energy-delivery" element={<EnergyDeliveryPage />} />
               <Route path="/portfolios/grid-operations" element={<GridOperationsPage />} />
@@ -58,6 +61,7 @@ export default function App() {
               <Route path="/portfolios/data-platforms" element={<DataPlatformsPage />} />
               <Route path="/portfolios/security" element={<SecurityPage />} />
               <Route path="/portfolios/customer" element={<CustomerPage />} />
+              {/* Projects page — standalone, intact, navigated to from Engagements pill */}
               <Route path="/projects" element={<ProjectsPage />} />
               <Route path="/ibm-holidays" element={<IbmHolidaysPage />} />
               <Route path="/partnership" element={<PartnershipPage />} />

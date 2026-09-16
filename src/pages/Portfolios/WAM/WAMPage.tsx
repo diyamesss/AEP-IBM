@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useLayoutEffect } from 'react'
 import styles from './WAMPage.module.scss'
 import wamHero from './assets/WAM.png'
 import ibmImg from './assets/IBM.jpg'
@@ -27,6 +27,8 @@ interface ChartCard {
   supplement?: React.ReactNode
   lastUpdate: string
   chart: React.ReactNode
+  /** When true the card spans the full grid width (both columns) */
+  fullWidth?: boolean
 }
 
 const WAM_CHART_CARDS: ChartCard[] = [
@@ -65,6 +67,7 @@ const WAM_CHART_CARDS: ChartCard[] = [
       'Visualisation of people churn progress over the past 3 months. Helps leadership identify which portfolios have higher churn and project what is coming next.',
     supplement: <ResourceChurnTable />,
     lastUpdate: LAST_UPDATE,
+    fullWidth: true,
     chart: (
       <img
         src={resourceChurnImg}
@@ -107,6 +110,7 @@ const WAM_CHART_CARDS: ChartCard[] = [
     description:
       'Visualisation of how demand is distributed across a 30-60-90 day forecast. Helps leadership gain insights and make projections of what is coming next in terms of demand.',
     lastUpdate: LAST_UPDATE,
+    fullWidth: true,
     chart: (
       <img
         src={demandManagementImg}
@@ -127,7 +131,7 @@ const NICHE_SKILLS = [
   'Splunk',
 ]
 
-const NAV_LINKS = [
+const NAV_LINKS: { id: string; label: string }[] = [
   { id: 'analytics',  label: `${PORTFOLIO_NAME} by the Numbers` },
   { id: 'highlights', label: 'Highlights' },
 ]
@@ -139,7 +143,10 @@ function ChartCardPanel({ card }: { card: ChartCard }) {
   return (
     <article
       id={card.id}
-      className={styles.chartCard}
+      className={[
+        styles.chartCard,
+        card.fullWidth ? styles.chartCardFullWidth : '',
+      ].filter(Boolean).join(' ')}
       aria-labelledby={`card-title-${card.id}`}
     >
       <header className={styles.cardHeader}>
@@ -196,11 +203,83 @@ function useActiveSection(ids: string[]): string {
   return activeId
 }
 
+/* ── Sliding-pill hook — measures button geometry and drives the pill ───── */
+function useSlidingPill(
+  refs: React.RefObject<HTMLButtonElement | null>[],
+  activeIndex: number
+) {
+  const [pillStyle, setPillStyle] = useState<React.CSSProperties>({})
+  const [pillReady, setPillReady] = useState(false)
+
+  function measure(idx: number) {
+    const btn = refs[idx]?.current
+    if (!btn) return
+    const parent = btn.parentElement
+    if (!parent) return
+    const pr = parent.getBoundingClientRect()
+    const br = btn.getBoundingClientRect()
+    setPillStyle({ left: br.left - pr.left, width: br.width })
+  }
+
+  useLayoutEffect(() => {
+    measure(activeIndex)
+    const id = requestAnimationFrame(() => setPillReady(true))
+    return () => cancelAnimationFrame(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  useEffect(() => {
+    if (pillReady) measure(activeIndex)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex])
+
+  useEffect(() => {
+    function onResize() { measure(activeIndex) }
+    window.addEventListener('resize', onResize, { passive: true })
+    return () => window.removeEventListener('resize', onResize)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIndex])
+
+  return { pillStyle, pillReady }
+}
+
 /* ── Page ──────────────────────────────────────────────────────────────── */
 export default function WAMPage() {
   const videoFiles = Object.values(videos) as string[]
   const chartIds = WAM_CHART_CARDS.map(c => c.id)
+
+  /* ── Section nav pill (2 options: Numbers / Highlights) ─────────────────
+     Scroll-tracks the two major sections below the hero.                  */
+  const [activePillIdx, setActivePillIdx] = useState(0)
+  const navBtnRefs = [
+    useRef<HTMLButtonElement>(null),
+    useRef<HTMLButtonElement>(null),
+  ]
+  const { pillStyle: navPillStyle, pillReady: navPillReady } = useSlidingPill(navBtnRefs, activePillIdx)
+
+  function handleNavClick(idx: number, sectionId: string) {
+    setActivePillIdx(idx)
+    document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  /* ── Chart subnav pill (6 options — one per chart card) ──────────────────
+     useActiveSection drives the active index via IntersectionObserver.    */
   const activeChartId = useActiveSection(chartIds)
+  const activeChartIdx = chartIds.indexOf(activeChartId)
+
+  /* Create one ref per chart card — hooks must be called unconditionally   */
+  const chartBtnRef0 = useRef<HTMLButtonElement>(null)
+  const chartBtnRef1 = useRef<HTMLButtonElement>(null)
+  const chartBtnRef2 = useRef<HTMLButtonElement>(null)
+  const chartBtnRef3 = useRef<HTMLButtonElement>(null)
+  const chartBtnRef4 = useRef<HTMLButtonElement>(null)
+  const chartBtnRef5 = useRef<HTMLButtonElement>(null)
+  const chartBtnRefs = [
+    chartBtnRef0, chartBtnRef1, chartBtnRef2,
+    chartBtnRef3, chartBtnRef4, chartBtnRef5,
+  ]
+  const { pillStyle: chartPillStyle, pillReady: chartPillReady } =
+    useSlidingPill(chartBtnRefs, activeChartIdx < 0 ? 0 : activeChartIdx)
 
   return (
     <div className={styles.page} id="top">
@@ -215,18 +294,33 @@ export default function WAMPage() {
         </div>
       </div>
 
-      {/* Sticky nav */}
-      <nav className={styles.navBar} aria-label="Page sections">
-        {NAV_LINKS.map(link => (
-          <button
-            key={link.id}
-            className={styles.navLink}
-            onClick={() => document.getElementById(link.id)?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            {link.label}
-          </button>
-        ))}
-      </nav>
+      {/* ── Sliding-pill section nav — directly below hero ── */}
+      <div className={styles.segWrap}>
+        <nav
+          className={styles.segControl}
+          role="navigation"
+          aria-label="WAM page sections"
+        >
+          {/* Sliding pill */}
+          <span
+            className={`${styles.segPill}${navPillReady ? ` ${styles.segPillAnimated}` : ''}`}
+            style={navPillStyle}
+            aria-hidden="true"
+          />
+
+          {NAV_LINKS.map((link, idx) => (
+            <button
+              key={link.id}
+              ref={navBtnRefs[idx]}
+              className={`${styles.segBtn}${activePillIdx === idx ? ` ${styles.segBtnActive}` : ''}`}
+              aria-pressed={activePillIdx === idx}
+              onClick={() => handleNavClick(idx, link.id)}
+            >
+              {link.label}
+            </button>
+          ))}
+        </nav>
+      </div>
 
       {/* ── About WAM ── */}
       <PortfolioIntroduction portfolioName={PORTFOLIO_NAME} showcase={SHOWCASE} />
@@ -247,21 +341,34 @@ export default function WAMPage() {
             </p>
           </div>
 
-          {/* Subnav — jump to individual chart, active pill tracks scroll position */}
-          <nav className={styles.chartNav} aria-label="Chart sections">
-            {WAM_CHART_CARDS.map(card => (
-              <button
-                key={card.id}
-                className={`${styles.chartNavItem}${activeChartId === card.id ? ` ${styles.chartNavItemActive}` : ''}`}
-                aria-current={activeChartId === card.id ? 'true' : undefined}
-                onClick={() => {
-                  document.getElementById(card.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                }}
-              >
-                {card.label}
-              </button>
-            ))}
-          </nav>
+          {/* ── Chart sliding-pill subnav ─────────────────────────────────
+               Scrollable outer wrapper prevents page overflow on mobile.
+               The pill is driven by IntersectionObserver (activeChartId). */}
+          <div className={styles.chartNavWrap} role="tablist" aria-label="WAM charts">
+            <div className={styles.chartNavTrack}>
+              {/* Sliding pill */}
+              <span
+                className={`${styles.chartNavPill}${chartPillReady ? ` ${styles.chartNavPillAnimated}` : ''}`}
+                style={chartPillStyle}
+                aria-hidden="true"
+              />
+
+              {WAM_CHART_CARDS.map((card, idx) => (
+                <button
+                  key={card.id}
+                  ref={chartBtnRefs[idx]}
+                  role="tab"
+                  aria-selected={activeChartId === card.id}
+                  className={`${styles.chartNavBtn}${activeChartId === card.id ? ` ${styles.chartNavBtnActive}` : ''}`}
+                  onClick={() =>
+                    document.getElementById(card.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }
+                >
+                  {card.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Card grid */}
           <div className={styles.cardGrid}>
