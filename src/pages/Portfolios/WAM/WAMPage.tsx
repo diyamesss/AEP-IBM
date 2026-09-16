@@ -67,7 +67,6 @@ const WAM_CHART_CARDS: ChartCard[] = [
       'Visualisation of people churn progress over the past 3 months. Helps leadership identify which portfolios have higher churn and project what is coming next.',
     supplement: <ResourceChurnTable />,
     lastUpdate: LAST_UPDATE,
-    fullWidth: true,
     chart: (
       <img
         src={resourceChurnImg}
@@ -110,7 +109,6 @@ const WAM_CHART_CARDS: ChartCard[] = [
     description:
       'Visualisation of how demand is distributed across a 30-60-90 day forecast. Helps leadership gain insights and make projections of what is coming next in terms of demand.',
     lastUpdate: LAST_UPDATE,
-    fullWidth: true,
     chart: (
       <img
         src={demandManagementImg}
