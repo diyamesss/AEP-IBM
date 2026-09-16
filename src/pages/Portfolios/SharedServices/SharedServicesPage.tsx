@@ -26,6 +26,7 @@ interface ChartCard {
   supplement?: React.ReactNode
   lastUpdate: string
   chart: React.ReactNode
+  fullWidth?: boolean
 }
 
 const CHART_CARDS: ChartCard[] = [
@@ -146,8 +147,29 @@ function useSlidingPill(
   return { pillStyle, pillReady }
 }
 
+/* ── Active-section hook — drives chart pill via IntersectionObserver ─────── */
+function useActiveSection(ids: string[]): string {
+  const [activeId, setActiveId] = useState(ids[0] ?? '')
+  useEffect(() => {
+    const observers: IntersectionObserver[] = []
+    ids.forEach(id => {
+      const el = document.getElementById(id)
+      if (!el) return
+      const obs = new IntersectionObserver(
+        ([entry]) => { if (entry.isIntersecting) setActiveId(id) },
+        { rootMargin: '-30% 0px -60% 0px', threshold: 0 }
+      )
+      obs.observe(el)
+      observers.push(obs)
+    })
+    return () => observers.forEach(o => o.disconnect())
+  }, [ids])
+  return activeId
+}
+
 export default function SharedServicesPage() {
   const videoFiles = Object.values(videos) as string[]
+  const chartIds = CHART_CARDS.map(c => c.id)
 
   const [activePillIdx, setActivePillIdx] = useState(0)
   const navBtnRefs = [
@@ -160,6 +182,18 @@ export default function SharedServicesPage() {
     setActivePillIdx(idx)
     document.getElementById(sectionId)?.scrollIntoView({ behavior: 'smooth' })
   }
+
+  const activeChartId = useActiveSection(chartIds)
+  const activeChartIdx = chartIds.indexOf(activeChartId)
+  const chartBtnRef0 = useRef<HTMLButtonElement>(null)
+  const chartBtnRef1 = useRef<HTMLButtonElement>(null)
+  const chartBtnRef2 = useRef<HTMLButtonElement>(null)
+  const chartBtnRef3 = useRef<HTMLButtonElement>(null)
+  const chartBtnRef4 = useRef<HTMLButtonElement>(null)
+  const chartBtnRef5 = useRef<HTMLButtonElement>(null)
+  const chartBtnRefs = [chartBtnRef0, chartBtnRef1, chartBtnRef2, chartBtnRef3, chartBtnRef4, chartBtnRef5]
+  const { pillStyle: chartPillStyle, pillReady: chartPillReady } =
+    useSlidingPill(chartBtnRefs, activeChartIdx < 0 ? 0 : activeChartIdx)
 
   return (
     <div className={styles.page} id="top">
@@ -209,14 +243,27 @@ export default function SharedServicesPage() {
             <h2 id="analytics-heading" className={styles.analyticsHeading}>{PORTFOLIO_NAME} by the Numbers</h2>
             <p className={styles.analyticsSubheading}>Key workforce metrics and resource distribution insights for the {PORTFOLIO_NAME} portfolio.</p>
           </div>
-          <nav className={styles.chartNav} aria-label="Chart sections">
-            {CHART_CARDS.map(card => (
-              <button key={card.id} className={styles.chartNavItem}
-                onClick={() => document.getElementById(card.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
-                {card.label}
-              </button>
-            ))}
-          </nav>
+          <div className={styles.chartNavWrap} role="tablist" aria-label="Charts">
+            <div className={styles.chartNavTrack}>
+              <span
+                className={`${styles.chartNavPill}${chartPillReady ? ` ${styles.chartNavPillAnimated}` : ''}`}
+                style={chartPillStyle}
+                aria-hidden="true"
+              />
+              {CHART_CARDS.map((card, idx) => (
+                <button
+                  key={card.id}
+                  ref={chartBtnRefs[idx]}
+                  role="tab"
+                  aria-selected={activeChartId === card.id}
+                  className={`${styles.chartNavBtn}${activeChartId === card.id ? ` ${styles.chartNavBtnActive}` : ''}`}
+                  onClick={() => document.getElementById(card.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                >
+                  {card.label}
+                </button>
+              ))}
+            </div>
+          </div>
           <div className={styles.cardGrid}>
             {CHART_CARDS.map(card => <ChartCardPanel key={card.id} card={card} />)}
           </div>
@@ -267,3 +314,4 @@ export default function SharedServicesPage() {
     </div>
   )
 }
+
