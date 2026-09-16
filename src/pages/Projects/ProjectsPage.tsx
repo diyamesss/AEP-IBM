@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import styles from './ProjectsPage.module.scss'
 import projectsImg from './assets/Projects.png'
 import resourcesByProjectImg from './assets/ResourcesByProject.png'
@@ -10,61 +11,102 @@ import monthlyOffboardingImg from './assets/MonthlyOffboarding.png'
 import monthlyResourceCountImg from './assets/MonthlyResourceCount.png'
 import demandManagementImg from './assets/DemandManagement.png'
 
-const sections = [
+/* ── Chart card data ─────────────────────────────────────────────────────── */
+interface ChartCard {
+  id: string
+  label: string
+  description: string
+  subLabel?: string
+  lastUpdate: string
+  img: string
+  imgAlt: string
+  category: string
+}
+
+const LAST_UPDATE = 'Last update 01/20/2026'
+
+const CHART_CARDS: ChartCard[] = [
   {
     id: 'resources-by-project',
     label: 'Resources by Project',
-    description: 'This chart shows visualization on how many people we have assigned by project. This helps leadership to get insights of what projects we have and make projection of what is coming next in terms of resources.',
-    chartSide: 'right',
+    description: 'Visualization of how many people are assigned by project. Helps leadership get insights and make projections on what is coming next in terms of resources.',
+    lastUpdate: LAST_UPDATE,
+    img: resourcesByProjectImg,
+    imgAlt: 'Resources by Project chart',
+    category: 'Allocation',
   },
   {
     id: 'onshore-offshore',
     label: 'Onshore and Offshore Distribution',
-    description: 'This chart shows visualization on how people are distributed between onshore and offshore locations. This helps leadership to get insights to better manage resource distribution and financials.',
-    chartSide: 'left',
+    description: 'How people are distributed between onshore and offshore locations. Helps leadership get insights to better manage resource distribution and financials.',
+    lastUpdate: LAST_UPDATE,
+    img: onshoreAndOffshoreImg,
+    imgAlt: 'Onshore and Offshore Distribution chart',
+    category: 'Distribution',
   },
   {
     id: 'proactive-count',
-    label: 'Proactive Count of Resource by Projects (as of date)',
-    description: 'This chart provides a visual representation of the number of people being onboarded within different projects, with a focus on proactive resource allocation for anticipated future demands. It offers insights into which projects are actively onboarding more personnel and supports leadership in understanding onboarding trends for strategic planning.',
-    chartSide: 'right',
+    label: 'Proactive Count of Resource by Projects',
+    description: 'Number of people being onboarded within different projects, with a focus on proactive resource allocation for anticipated future demands.',
+    lastUpdate: LAST_UPDATE,
+    img: proactiveCountImg,
+    imgAlt: 'Proactive Count of Resource by Projects chart',
+    category: 'Onboarding',
   },
   {
     id: 'resource-churn',
     label: 'Resource Churn By Reason (last 3 months)',
-    description: 'This chart offers a visual representation of resource churn within different projects, categorized by specific reasons for resource departure. This chart serves as a valuable tool for leadership to understand the causes and patterns of resource churn.',
-    chartSide: 'left',
+    description: 'Resource churn within different projects, categorized by specific reasons for resource departure — a tool for leadership to understand causes and patterns.',
+    lastUpdate: LAST_UPDATE,
+    img: reasonChurnImg,
+    imgAlt: 'Resource Churn By Reason chart',
+    category: 'Churn',
   },
   {
     id: 'avg-fulfillment',
     label: 'Average Fulfillment Time (last 6 months)',
-    description: 'This chart offers a comprehensive view of fulfillment times and lead times by projects, empowering leadership to make informed decisions regarding project management and resource allocation.',
+    description: 'Comprehensive view of fulfillment times and lead times by project, empowering leadership to make informed decisions regarding project management.',
     subLabel: 'In days',
-    chartSide: 'right',
+    lastUpdate: LAST_UPDATE,
+    img: averageFulfillmentImg,
+    imgAlt: 'Average Fulfillment Time chart',
+    category: 'Performance',
   },
   {
     id: 'monthly-onboarding',
     label: 'Monthly Onboarding of Resources (last 3 months)',
-    description: 'This chart will give visualization on how resource is increasing month by month. This can help leadership to get some insights and make some projections of what is coming next in terms of resource count.',
-    chartSide: 'left',
+    description: 'How resource count is increasing month by month. Helps leadership get insights and make projections of what is coming next in terms of resource count.',
+    lastUpdate: LAST_UPDATE,
+    img: monthlyOnboardingImg,
+    imgAlt: 'Monthly Onboarding of Resources chart',
+    category: 'Movements',
   },
   {
     id: 'monthly-offboarding',
     label: 'Monthly Offboarding of Resources (last 3 months)',
-    description: 'This chart shows the resource offboarding activities happened for the past months over the different projects. Data will help leadership to know and plan accordingly based on the reduction of resource count in each projects.',
-    chartSide: 'right',
+    description: 'Resource offboarding activities over the past months across different projects. Helps leadership plan based on reduction of resource count in each project.',
+    lastUpdate: LAST_UPDATE,
+    img: monthlyOffboardingImg,
+    imgAlt: 'Monthly Offboarding of Resources chart',
+    category: 'Movements',
   },
   {
     id: 'monthly-resource-count',
     label: 'Monthly Resource Count (last 3 months)',
-    description: 'This chart shows visualization on how resource count is changing month by month. This helps leadership to get insights and make some projections of what is coming next in terms of resource count.',
-    chartSide: 'left',
+    description: 'How resource count is changing month by month. Helps leadership get insights and make projections of what is coming next in terms of resource count.',
+    lastUpdate: LAST_UPDATE,
+    img: monthlyResourceCountImg,
+    imgAlt: 'Monthly Resource Count chart',
+    category: 'Trends',
   },
   {
     id: 'demand-management',
     label: 'Demand Management 30-60-90 day Forecast',
-    description: 'This chart will give visualization on how demand is distributed between 30-60-90 day forecast. This can help leadership to get some insights and make some projections of what is coming next in terms of demand.',
-    chartSide: 'right',
+    description: 'How demand is distributed between 30-60-90 day forecast. Helps leadership get insights and make projections of what is coming next in terms of demand.',
+    lastUpdate: LAST_UPDATE,
+    img: demandManagementImg,
+    imgAlt: 'Demand Management Forecast chart',
+    category: 'Forecast',
   },
 ]
 
@@ -146,13 +188,56 @@ const HIGHLIGHTS = [
   },
 ]
 
-const LAST_UPDATE = 'Last update 01/20/2026'
+/* ── Individual chart card ────────────────────────────────────────────────── */
+function ChartCardPanel({ card }: { card: ChartCard }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <article
+      id={card.id}
+      className={styles.chartCard}
+      aria-labelledby={`card-title-${card.id}`}
+    >
+      {/* Image area */}
+      <div className={styles.cardImgWrap}>
+        <img
+          src={card.img}
+          alt={card.imgAlt}
+          className={styles.cardImg}
+        />
+      </div>
+
+      {/* Content area */}
+      <div className={styles.cardBody}>
+        <span className={styles.cardCategory}>{card.category}</span>
+        <h3 id={`card-title-${card.id}`} className={styles.cardTitle}>
+          {card.label}
+        </h3>
+        {card.subLabel && (
+          <p className={styles.cardSubLabel}>{card.subLabel}</p>
+        )}
+        <p className={`${styles.cardDesc} ${expanded ? styles.cardDescExpanded : ''}`}>
+          {card.description}
+        </p>
+        {card.description.length > 100 && (
+          <button
+            className={styles.expandToggle}
+            onClick={() => setExpanded(v => !v)}
+          >
+            {expanded ? 'Show less ↑' : 'Read more ↓'}
+          </button>
+        )}
+        <p className={styles.cardLastUpdate}>{card.lastUpdate}</p>
+      </div>
+    </article>
+  )
+}
 
 export default function ProjectsPage() {
   return (
     <div className={styles.page} id="top">
 
-      {/* ── Hero — image with overlay, badge, heading, sub ────────────── */}
+      {/* ── Hero ── */}
       <div className={styles.hero} role="region" aria-label="Projects">
         <img src={projectsImg} alt="Projects" className={styles.heroImg} />
         <div className={styles.heroOverlay} aria-hidden="true" />
@@ -161,13 +246,12 @@ export default function ProjectsPage() {
           <h1 className={styles.heroHeading}>Projects</h1>
           <p className={styles.heroSub}>
             A centralized hub for project and resource insights, enabling structured visibility
-            into project allocation, onshore and offshore distribution, resource movements,
-            fulfillment performance, workforce trends, and forward-looking demand forecasts.
+            into allocation, distribution, resource movements, fulfillment performance, and demand forecasts.
           </p>
         </div>
       </div>
 
-      {/* ── Welcome / intro section ───────────────────────────────────── */}
+      {/* ── Intro / stats ── */}
       <section className={styles.intro}>
         <div className={styles.introInner}>
           <div className={styles.introLabel}>Resource Intelligence</div>
@@ -193,13 +277,13 @@ export default function ProjectsPage() {
         </div>
       </section>
 
-      {/* ── Highlights — icon card grid ───────────────────────────────── */}
+      {/* ── Highlights — icon card grid ── */}
       <section className={styles.highlights} aria-labelledby="highlights-heading">
         <div className={styles.sectionHeader}>
           <div className={styles.sectionLabel}>What's Inside</div>
           <h2 id="highlights-heading" className={styles.sectionTitle}>Dashboard Highlights</h2>
           <p className={styles.sectionBody}>
-            Each view is designed to surface a specific lens on project and workforce data,
+            Each view surfaces a specific lens on project and workforce data,
             giving leadership clear, actionable intelligence at a glance.
           </p>
         </div>
@@ -214,77 +298,52 @@ export default function ProjectsPage() {
         </div>
       </section>
 
-      {/* ── Sticky pill nav ───────────────────────────────────────────── */}
-      <nav className={styles.navBar} aria-label="Jump to section">
-        {sections.map(s => (
-          <button
-            key={s.id}
-            className={styles.navLink}
-            onClick={() => document.getElementById(s.id)?.scrollIntoView({ behavior: 'smooth' })}
-          >
-            {s.label}
-          </button>
-        ))}
-      </nav>
+      {/* ── Charts section ── */}
+      <section id="analytics" className={styles.analyticsSection} aria-labelledby="analytics-heading">
+        <div className={styles.analyticsInner}>
 
-      {/* ── Chart sections ────────────────────────────────────────────── */}
-      <div className={styles.sections}>
-        {sections.map((s, i) => (
-          <section
-            key={s.id}
-            id={s.id}
-            className={`${styles.section} ${i % 2 !== 0 ? styles.sectionAlt : ''}`}
-          >
-            <div className={styles.sectionsInner}>
-              <div className={`${styles.row} ${s.chartSide === 'left' ? styles.rowReverse : ''}`}>
+          {/* Section heading */}
+          <div className={styles.analyticsHeadingRow}>
+            <span className={styles.analyticsEyebrow}>Analytics</span>
+            <h2 id="analytics-heading" className={styles.analyticsHeading}>
+              Projects by the Numbers
+            </h2>
+            <p className={styles.analyticsSubheading}>
+              Key workforce metrics and resource distribution insights across all active projects.
+            </p>
+          </div>
 
-                {/* Text side */}
-                <div className={styles.textSide}>
-                  <div className={styles.sectionLabelPill}>Chart Insight</div>
-                  <h2 className={styles.sectionTitle}>{s.label}</h2>
-                  {'subLabel' in s && s.subLabel && (
-                    <p className={styles.subLabel}>{s.subLabel}</p>
-                  )}
-                  <p className={styles.sectionDesc}>{s.description}</p>
-                  <p className={styles.lastUpdate}>{LAST_UPDATE}</p>
-                  <button
-                    className={styles.backToTop}
-                    onClick={() => document.getElementById('top')?.scrollIntoView({ behavior: 'smooth' })}
-                  >
-                    ↑ Back to top
-                  </button>
-                </div>
+          {/* Chart subnav */}
+          <nav className={styles.chartNav} aria-label="Jump to chart">
+            {CHART_CARDS.map(card => (
+              <button
+                key={card.id}
+                className={styles.chartNavItem}
+                onClick={() => document.getElementById(card.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+              >
+                {card.label}
+              </button>
+            ))}
+          </nav>
 
-                {/* Chart image */}
-                <div className={styles.chartSide}>
-                  {s.id === 'resources-by-project' ? (
-                    <img src={resourcesByProjectImg} alt="Resources by Project chart" className={styles.chartImg} />
-                  ) : s.id === 'onshore-offshore' ? (
-                    <img src={onshoreAndOffshoreImg} alt="Onshore and Offshore Distribution chart" className={styles.chartImg} />
-                  ) : s.id === 'proactive-count' ? (
-                    <img src={proactiveCountImg} alt="Proactive Count of Resource by Projects chart" className={styles.chartImg} />
-                  ) : s.id === 'resource-churn' ? (
-                    <img src={reasonChurnImg} alt="Resource Churn By Reason chart" className={styles.chartImg} />
-                  ) : s.id === 'avg-fulfillment' ? (
-                    <img src={averageFulfillmentImg} alt="Average Fulfillment Time chart" className={styles.chartImg} />
-                  ) : s.id === 'monthly-onboarding' ? (
-                    <img src={monthlyOnboardingImg} alt="Monthly Onboarding of Resources chart" className={styles.chartImg} />
-                  ) : s.id === 'monthly-offboarding' ? (
-                    <img src={monthlyOffboardingImg} alt="Monthly Offboarding of Resources chart" className={styles.chartImg} />
-                  ) : s.id === 'monthly-resource-count' ? (
-                    <img src={monthlyResourceCountImg} alt="Monthly Resource Count chart" className={styles.chartImg} />
-                  ) : s.id === 'demand-management' ? (
-                    <img src={demandManagementImg} alt="Demand Management 30-60-90 day Forecast chart" className={styles.chartImg} />
-                  ) : (
-                    <div className={styles.chartPlaceholder}>Chart</div>
-                  )}
-                </div>
+          {/* 2-column card grid */}
+          <div className={styles.cardGrid}>
+            {CHART_CARDS.map(card => (
+              <ChartCardPanel key={card.id} card={card} />
+            ))}
+          </div>
 
-              </div>
-            </div>
-          </section>
-        ))}
-      </div>
+          {/* Back to top */}
+          <div className={styles.backToTopRow}>
+            <button
+              className={styles.backToTop}
+              onClick={() => document.getElementById('top')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Back to top ↑
+            </button>
+          </div>
+        </div>
+      </section>
 
     </div>
   )

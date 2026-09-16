@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import styles from './CustomerPage.module.scss'
 import customerHero from './assets/Customer.png'
 import ibmImg from './assets/IBM.jpg'
@@ -10,8 +11,6 @@ import demandManagementImg from './assets/DemandManagement.png'
 import { ResourceChurnTable } from '../../../components/shared/ResourceChurnChart/ResourceChurnChart'
 import PortfolioIntroduction from '../../../components/shared/PortfolioIntroduction/PortfolioIntroduction'
 import PortfolioSuccessStory from '../../../components/shared/PortfolioSuccessStory/PortfolioSuccessStory'
-import PortfolioAnalyticsTabs from '../../../components/shared/PortfolioAnalyticsTabs/PortfolioAnalyticsTabs'
-import type { AnalyticsTab } from '../../../components/shared/PortfolioAnalyticsTabs/PortfolioAnalyticsTabs'
 import { PORTFOLIO_SHOWCASE } from '../../../data/portfolio-showcase'
 
 const videos = import.meta.glob('./assets/*.{mp4,webm,mov}', { eager: true, query: '?url', import: 'default' })
@@ -20,7 +19,16 @@ const PORTFOLIO_NAME = 'Customer'
 const SHOWCASE = PORTFOLIO_SHOWCASE['customer']
 const LAST_UPDATE = 'Last update 03/20/2026'
 
-const ANALYTICS_TABS: AnalyticsTab[] = [
+interface ChartCard {
+  id: string
+  label: string
+  description: string
+  supplement?: React.ReactNode
+  lastUpdate: string
+  chart: React.ReactNode
+}
+
+const CHART_CARDS: ChartCard[] = [
   {
     id: 'geographic-distribution',
     label: 'Geographic Distribution',
@@ -79,9 +87,31 @@ const MITIGATIONS = [
 ]
 
 const NAV_LINKS = [
-  { id: 'analytics',  label: `${PORTFOLIO_NAME} by the Numbers` },
+  { id: 'analytics', label: `${PORTFOLIO_NAME} by the Numbers` },
   { id: 'highlights', label: 'Highlights' },
 ]
+
+function ChartCardPanel({ card }: { card: ChartCard }) {
+  const [expanded, setExpanded] = useState(false)
+  return (
+    <article id={card.id} className={styles.chartCard} aria-labelledby={`card-title-${card.id}`}>
+      <header className={styles.cardHeader}>
+        <h3 id={`card-title-${card.id}`} className={styles.cardTitle}>{card.label}</h3>
+        <p className={styles.cardDesc}>{card.description}</p>
+        {card.supplement && (
+          <>
+            <button className={styles.supplementToggle} aria-expanded={expanded} onClick={() => setExpanded(v => !v)}>
+              {expanded ? 'Hide definitions ↑' : 'View definitions ↓'}
+            </button>
+            {expanded && <div className={styles.cardSupplement}>{card.supplement}</div>}
+          </>
+        )}
+        <p className={styles.cardLastUpdate}>{card.lastUpdate}</p>
+      </header>
+      <div className={styles.cardChartArea}>{card.chart}</div>
+    </article>
+  )
+}
 
 export default function CustomerPage() {
   const videoFiles = Object.values(videos) as string[]
@@ -89,7 +119,6 @@ export default function CustomerPage() {
   return (
     <div className={styles.page} id="top">
 
-      {/* Hero */}
       <div className={styles.hero}>
         <img src={customerHero} alt="Customer" className={styles.heroImg} />
         <div className={styles.heroContent}>
@@ -99,89 +128,76 @@ export default function CustomerPage() {
         </div>
       </div>
 
-      {/* Sticky nav */}
       <nav className={styles.navBar} aria-label="Page sections">
         {NAV_LINKS.map(link => (
-          <button
-            key={link.id}
-            className={styles.navLink}
-            onClick={() => document.getElementById(link.id)?.scrollIntoView({ behavior: 'smooth' })}
-          >
+          <button key={link.id} className={styles.navLink}
+            onClick={() => document.getElementById(link.id)?.scrollIntoView({ behavior: 'smooth' })}>
             {link.label}
           </button>
         ))}
       </nav>
 
-      {/* ── About [Portfolio] ── */}
       <PortfolioIntroduction portfolioName={PORTFOLIO_NAME} showcase={SHOWCASE} />
-
-      {/* ── From Challenge to Impact ── */}
       <PortfolioSuccessStory successStory={SHOWCASE} />
 
-      {/* ── [Portfolio] by the Numbers — tabbed analytics ── */}
-      <div className={styles.analyticsBorder}>
-        <PortfolioAnalyticsTabs
-          heading={`${PORTFOLIO_NAME} by the Numbers`}
-          tabs={ANALYTICS_TABS}
-        />
-      </div>
+      <section id="analytics" className={styles.analyticsSection} aria-labelledby="analytics-heading">
+        <div className={styles.analyticsInner}>
+          <div className={styles.analyticsHeadingRow}>
+            <span className={styles.analyticsEyebrow}>Analytics</span>
+            <h2 id="analytics-heading" className={styles.analyticsHeading}>{PORTFOLIO_NAME} by the Numbers</h2>
+            <p className={styles.analyticsSubheading}>Key workforce metrics and resource distribution insights for the {PORTFOLIO_NAME} portfolio.</p>
+          </div>
+          <nav className={styles.chartNav} aria-label="Chart sections">
+            {CHART_CARDS.map(card => (
+              <button key={card.id} className={styles.chartNavItem}
+                onClick={() => document.getElementById(card.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+                {card.label}
+              </button>
+            ))}
+          </nav>
+          <div className={styles.cardGrid}>
+            {CHART_CARDS.map(card => <ChartCardPanel key={card.id} card={card} />)}
+          </div>
+        </div>
+      </section>
 
-      {/* ── Highlights ── */}
-      <div className={styles.sections}>
-        <section id="highlights" className={`${styles.section} ${styles.sectionLast}`}>
-          <div className={styles.highlightsHeader}>
-            <h2 className={styles.highlightsTitle}>Highlights</h2>
-            <button
-              className={styles.backToTop}
-              onClick={() => document.getElementById('top')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              Back to top
+      <section id="highlights" className={styles.highlightsSection} aria-labelledby="highlights-heading">
+        <div className={styles.highlightsInner}>
+          <div className={styles.highlightsHeaderRow}>
+            <h2 id="highlights-heading" className={styles.highlightsTitle}>Highlights</h2>
+            <button className={styles.backToTop} onClick={() => document.getElementById('top')?.scrollIntoView({ behavior: 'smooth' })}>
+              Back to top ↑
             </button>
           </div>
-
           <div className={styles.highlightsGrid}>
-
             <div className={styles.hlCardRed}>
               <div className={styles.hlCardContent}>
                 <h3 className={styles.hlCardTitle}>Main challenges</h3>
-                {MAIN_CHALLENGES.map((text, i) => (
-                  <p key={i} className={styles.hlCardText}>{text}</p>
-                ))}
+                {MAIN_CHALLENGES.map((text, i) => <p key={i} className={styles.hlCardText}>{text}</p>)}
               </div>
               <img src={ibmImg} alt="IBM" className={styles.hlCardImg} />
             </div>
-
             <div className={styles.hlCardGrey}>
               <h3 className={styles.hlCardTitleDark}>Niche Skills</h3>
               <ul className={styles.nicheList}>
-                {NICHE_SKILLS.map((skill, i) => (
-                  <li key={i} className={styles.nicheItem}>{skill}</li>
-                ))}
+                {NICHE_SKILLS.map((skill, i) => <li key={i} className={styles.nicheItem}>{skill}</li>)}
               </ul>
             </div>
-
             <div className={styles.hlCardRed}>
               <div className={styles.hlCardContent}>
                 <h3 className={styles.hlCardTitle}>Mitigation</h3>
-                {MITIGATIONS.map((text, i) => (
-                  <p key={i} className={styles.hlCardText}>{text}</p>
-                ))}
+                {MITIGATIONS.map((text, i) => <p key={i} className={styles.hlCardText}>{text}</p>)}
               </div>
             </div>
-
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
-      {/* Remaining video assets */}
       {videoFiles.length > 0 && (
         <div className={styles.content}>
-          {videoFiles.map((src, i) => (
-            <video key={i} src={src} controls className={styles.video} />
-          ))}
+          {videoFiles.map((src, i) => <video key={i} src={src} controls className={styles.video} />)}
         </div>
       )}
-
     </div>
   )
 }

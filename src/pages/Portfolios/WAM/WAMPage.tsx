@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react'
 import styles from './WAMPage.module.scss'
 import wamHero from './assets/WAM.png'
 import ibmImg from './assets/IBM.jpg'
@@ -10,26 +11,32 @@ import { ResourceChurnTable } from '../../../components/shared/ResourceChurnChar
 import resourceChurnImg from './assets/ResourceChurn.png'
 import PortfolioIntroduction from '../../../components/shared/PortfolioIntroduction/PortfolioIntroduction'
 import PortfolioSuccessStory from '../../../components/shared/PortfolioSuccessStory/PortfolioSuccessStory'
-import PortfolioAnalyticsTabs from '../../../components/shared/PortfolioAnalyticsTabs/PortfolioAnalyticsTabs'
-import type { AnalyticsTab } from '../../../components/shared/PortfolioAnalyticsTabs/PortfolioAnalyticsTabs'
 import { PORTFOLIO_SHOWCASE } from '../../../data/portfolio-showcase'
 
 const videos = import.meta.glob('./assets/*.{mp4,webm,mov}', { eager: true, query: '?url', import: 'default' })
 
 const PORTFOLIO_NAME = 'WAM'
 const SHOWCASE = PORTFOLIO_SHOWCASE['wam']
-
 const LAST_UPDATE = 'Last update 03/20/2026'
 
-/* ── Analytics tabs — one entry per existing chart section ─────────────────
-   Order, labels, descriptions, and images are exactly as they were in
-   the previous vertical layout. Nothing has been added or removed.        */
-const WAM_ANALYTICS_TABS: AnalyticsTab[] = [
+/* ── Chart cards data ────────────────────────────────────────────────────── */
+interface ChartCard {
+  id: string
+  label: string
+  description: string
+  supplement?: React.ReactNode
+  lastUpdate: string
+  chart: React.ReactNode
+  /** When true the card spans both grid columns */
+  fullWidth?: boolean
+}
+
+const WAM_CHART_CARDS: ChartCard[] = [
   {
     id: 'geographic-distribution',
     label: 'Geographic Distribution',
     description:
-      'This chart shows visualization on how many people we have assigned by country. This helps leadership to get insights and make some projection of what is coming next in terms of resources.',
+      'Visualisation of how many people are assigned by country. Helps leadership gain insights and make projections of what is coming next in terms of resources.',
     lastUpdate: LAST_UPDATE,
     chart: (
       <img
@@ -43,7 +50,7 @@ const WAM_ANALYTICS_TABS: AnalyticsTab[] = [
     id: 'core-flex-distribution',
     label: 'Core-Flex Distribution',
     description:
-      'This chart shows visualization on how people are distributed between Core and Flex. This helps leadership to get insights and make some projections of what is coming next in terms of core and flex resources.',
+      'Visualisation of how people are distributed between Core and Flex. Helps leadership gain insights and make projections of what is coming next in terms of core and flex resources.',
     lastUpdate: LAST_UPDATE,
     chart: (
       <img
@@ -57,9 +64,10 @@ const WAM_ANALYTICS_TABS: AnalyticsTab[] = [
     id: 'resource-churn',
     label: 'Resource Churn (last 3 months)',
     description:
-      'This chart shows visualization on the progress for people churn in the past 3 months. This helps leadership to get insights of what portfolios we have more churn and make some projection of what is coming next.',
+      'Visualisation of people churn progress over the past 3 months. Helps leadership identify which portfolios have higher churn and project what is coming next.',
     supplement: <ResourceChurnTable />,
     lastUpdate: LAST_UPDATE,
+    fullWidth: true,
     chart: (
       <img
         src={resourceChurnImg}
@@ -70,9 +78,9 @@ const WAM_ANALYTICS_TABS: AnalyticsTab[] = [
   },
   {
     id: 'monthly-onboarding',
-    label: 'Monthly Onboarding of Resources (last 3 months)',
+    label: 'Monthly Onboarding of Resources',
     description:
-      'This chart shows visualization on how resource is increasing month by month. This helps leadership to get insights and make some projections of what is coming next in terms of resource count.',
+      'Visualisation of how resource count is increasing month by month. Helps leadership gain insights and make projections of what is coming next in terms of resource count.',
     lastUpdate: LAST_UPDATE,
     chart: (
       <img
@@ -84,9 +92,9 @@ const WAM_ANALYTICS_TABS: AnalyticsTab[] = [
   },
   {
     id: 'monthly-offboarding',
-    label: 'Monthly Offboarding of Resources (last 3 months)',
+    label: 'Monthly Offboarding of Resources',
     description:
-      'This chart shows the resource offboarding activities happened for the past three months. Data will help leadership to know and plan accordingly based on the reduction of resource count per month.',
+      'Tracks resource offboarding activities over the past three months. Helps leadership plan based on the reduction of resource count per month.',
     lastUpdate: LAST_UPDATE,
     chart: (
       <img
@@ -100,8 +108,9 @@ const WAM_ANALYTICS_TABS: AnalyticsTab[] = [
     id: 'demand-management',
     label: 'Demand Management',
     description:
-      'This chart shows visualization on how demand is distributed between 30-60-90 day forecast. This helps leadership to get insights and make some projections of what is coming next in terms of demand.',
+      'Visualisation of how demand is distributed across a 30-60-90 day forecast. Helps leadership gain insights and make projections of what is coming next in terms of demand.',
     lastUpdate: LAST_UPDATE,
+    fullWidth: true,
     chart: (
       <img
         src={demandManagementImg}
@@ -122,14 +131,80 @@ const NICHE_SKILLS = [
   'Splunk',
 ]
 
-/* ── Nav links point to the two remaining landmark sections ──────────────── */
 const NAV_LINKS = [
   { id: 'analytics',  label: `${PORTFOLIO_NAME} by the Numbers` },
   { id: 'highlights', label: 'Highlights' },
 ]
 
+/* ── Individual chart card ─────────────────────────────────────────────── */
+function ChartCardPanel({ card }: { card: ChartCard }) {
+  const [expanded, setExpanded] = useState(false)
+
+  return (
+    <article
+      id={card.id}
+      className={`${styles.chartCard}${card.fullWidth ? ` ${styles.chartCardFull}` : ''}`}
+      aria-labelledby={`card-title-${card.id}`}
+    >
+      <header className={styles.cardHeader}>
+        <h3 id={`card-title-${card.id}`} className={styles.cardTitle}>{card.label}</h3>
+        <p className={styles.cardDesc}>{card.description}</p>
+        {card.supplement && (
+          <>
+            <button
+              className={styles.supplementToggle}
+              aria-expanded={expanded}
+              onClick={() => setExpanded(v => !v)}
+            >
+              {expanded ? 'Hide definitions ↑' : 'View definitions ↓'}
+            </button>
+            {expanded && (
+              <div className={styles.cardSupplement}>{card.supplement}</div>
+            )}
+          </>
+        )}
+        <p className={styles.cardLastUpdate}>{card.lastUpdate}</p>
+      </header>
+
+      <div className={styles.cardChartArea}>
+        {card.chart}
+      </div>
+    </article>
+  )
+}
+
+/* ── Active-nav hook — tracks which chart card is in view ───────────────── */
+function useActiveSection(ids: string[]): string {
+  const [activeId, setActiveId] = useState(ids[0] ?? '')
+
+  useEffect(() => {
+    const observers: IntersectionObserver[] = []
+
+    ids.forEach(id => {
+      const el = document.getElementById(id)
+      if (!el) return
+
+      const obs = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) setActiveId(id)
+        },
+        { rootMargin: '-30% 0px -60% 0px', threshold: 0 }
+      )
+      obs.observe(el)
+      observers.push(obs)
+    })
+
+    return () => observers.forEach(o => o.disconnect())
+  }, [ids])
+
+  return activeId
+}
+
+/* ── Page ──────────────────────────────────────────────────────────────── */
 export default function WAMPage() {
   const videoFiles = Object.values(videos) as string[]
+  const chartIds = WAM_CHART_CARDS.map(c => c.id)
+  const activeChartId = useActiveSection(chartIds)
 
   return (
     <div className={styles.page} id="top">
@@ -157,36 +232,64 @@ export default function WAMPage() {
         ))}
       </nav>
 
-      {/* ── About [Portfolio] ── */}
+      {/* ── About WAM ── */}
       <PortfolioIntroduction portfolioName={PORTFOLIO_NAME} showcase={SHOWCASE} />
 
       {/* ── From Challenge to Impact ── */}
       <PortfolioSuccessStory successStory={SHOWCASE} />
 
-      {/* ── [Portfolio] by the Numbers — tabbed analytics ── */}
-      <div className={styles.analyticsBorder}>
-        <PortfolioAnalyticsTabs
-          heading={`${PORTFOLIO_NAME} by the Numbers`}
-          tabs={WAM_ANALYTICS_TABS}
-        />
-      </div>
+      {/* ── WAM by the Numbers — card grid ── */}
+      <section id="analytics" className={styles.analyticsSection} aria-labelledby="analytics-heading">
+        <div className={styles.analyticsInner}>
+          <div className={styles.analyticsHeadingRow}>
+            <span className={styles.analyticsEyebrow}>Analytics</span>
+            <h2 id="analytics-heading" className={styles.analyticsHeading}>
+              {PORTFOLIO_NAME} by the Numbers
+            </h2>
+            <p className={styles.analyticsSubheading}>
+              Key workforce metrics and resource distribution insights for the WAM portfolio.
+            </p>
+          </div>
+
+          {/* Subnav — jump to individual chart, active pill tracks scroll position */}
+          <nav className={styles.chartNav} aria-label="Chart sections">
+            {WAM_CHART_CARDS.map(card => (
+              <button
+                key={card.id}
+                className={`${styles.chartNavItem}${activeChartId === card.id ? ` ${styles.chartNavItemActive}` : ''}`}
+                aria-current={activeChartId === card.id ? 'true' : undefined}
+                onClick={() => {
+                  document.getElementById(card.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                }}
+              >
+                {card.label}
+              </button>
+            ))}
+          </nav>
+
+          {/* Card grid */}
+          <div className={styles.cardGrid}>
+            {WAM_CHART_CARDS.map(card => (
+              <ChartCardPanel key={card.id} card={card} />
+            ))}
+          </div>
+        </div>
+      </section>
 
       {/* ── Highlights ── */}
-      <div className={styles.sections}>
-        <section id="highlights" className={`${styles.section} ${styles.sectionLast}`}>
-          <div className={styles.highlightsHeader}>
-            <h2 className={styles.highlightsTitle}>Highlights</h2>
+      <section id="highlights" className={styles.highlightsSection} aria-labelledby="highlights-heading">
+        <div className={styles.highlightsInner}>
+          <div className={styles.highlightsHeaderRow}>
+            <h2 id="highlights-heading" className={styles.highlightsTitle}>Highlights</h2>
             <button
               className={styles.backToTop}
               onClick={() => document.getElementById('top')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              Back to top
+              Back to top ↑
             </button>
           </div>
 
           <div className={styles.highlightsGrid}>
-
-            {/* Left — dark red: Main challenges + IBM image */}
             <div className={styles.hlCardRed}>
               <div className={styles.hlCardContent}>
                 <h3 className={styles.hlCardTitle}>Main challenges</h3>
@@ -200,7 +303,6 @@ export default function WAMPage() {
               <img src={ibmImg} alt="IBM" className={styles.hlCardImg} />
             </div>
 
-            {/* Center — light grey: Niche Skills */}
             <div className={styles.hlCardGrey}>
               <h3 className={styles.hlCardTitleDark}>Niche Skills</h3>
               <ul className={styles.nicheList}>
@@ -210,7 +312,6 @@ export default function WAMPage() {
               </ul>
             </div>
 
-            {/* Right — dark red: Mitigation */}
             <div className={styles.hlCardRed}>
               <div className={styles.hlCardContent}>
                 <h3 className={styles.hlCardTitle}>Mitigation</h3>
@@ -225,10 +326,9 @@ export default function WAMPage() {
                 </p>
               </div>
             </div>
-
           </div>
-        </section>
-      </div>
+        </div>
+      </section>
 
       {/* Remaining video assets */}
       {videoFiles.length > 0 && (
