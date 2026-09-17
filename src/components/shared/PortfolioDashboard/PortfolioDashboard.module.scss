@@ -1,0 +1,377 @@
+/* ── PortfolioDashboard ───────────────────────────────────────────────────── */
+
+/* Section wrapper — matches the existing analyticsSection style */
+.section {
+  padding: 5.5rem 0 6.5rem;
+  background: #f5f5f7;
+  scroll-margin-top: calc(var(--header-total-height) + 60px);
+}
+
+/* ── Heading row ─────────────────────────────────────────────────────────── */
+.headingRow {
+  max-width: 1240px;
+  margin: 0 auto 2.75rem;
+  padding: 0 2.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.headingLeft {
+  display: flex;
+  flex-direction: column;
+}
+
+.eyebrow {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #c8102e;
+  margin-bottom: 0.5rem;
+}
+
+.heading {
+  font-size: clamp(1.875rem, 3.5vw, 2.75rem);
+  font-weight: 700;
+  color: #1d1d1f;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  margin: 0 0 0.5rem;
+}
+
+.totalCount {
+  font-size: 0.875rem;
+  color: #6e6e73;
+  margin: 0;
+}
+
+.headingRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+/* ── Refresh button ───────────────────────────────────────────────────────── */
+.refreshButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid #e4e4e7;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  color: #6e6e73;
+  font-size: 1rem;
+  transition: color 150ms ease, border-color 150ms ease, transform 150ms ease;
+  outline: none;
+
+  &:hover:not(:disabled) {
+    color: #c8102e;
+    border-color: #c8102e;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #c8102e;
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.refreshIcon {
+  display: inline-block;
+  line-height: 1;
+}
+
+.refreshIconSpinning {
+  display: inline-block;
+  line-height: 1;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ── Last updated ─────────────────────────────────────────────────────────── */
+.lastUpdated {
+  font-size: 0.72rem;
+  color: #aeaeb2;
+  margin: 0;
+  white-space: nowrap;
+  letter-spacing: 0.01em;
+}
+
+/* ── Dashboard content ────────────────────────────────────────────────────── */
+.dashboardContent {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+}
+
+/* ── Tab list ─────────────────────────────────────────────────────────────── */
+.tabList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 1.75rem;
+  border-bottom: 2px solid #e4e4e7;
+  padding-bottom: 0;
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  padding: 10px 16px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: #6e6e73;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: color 150ms ease, border-color 150ms ease;
+  outline: none;
+
+  &:hover:not(.tabActive) {
+    color: #1d1d1f;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #c8102e;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+.tabActive {
+  color: #c8102e;
+  border-bottom-color: #c8102e;
+  font-weight: 600;
+}
+
+/* ── Tab panel ───────────────────────────────────────────────────────────── */
+.panel {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.04),
+    0 4px 12px rgba(0, 0, 0, 0.06);
+  padding: 1.5rem 1.75rem;
+}
+
+.chartDescription {
+  font-size: 0.875rem;
+  color: #6e6e73;
+  line-height: 1.65;
+  margin: 0 0 1.5rem;
+  max-width: 640px;
+}
+
+/* ── Chart wrapper ───────────────────────────────────────────────────────── */
+.chartWrapper {
+  width: 100%;
+  min-height: 220px;
+}
+
+.chartEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  font-size: 0.875rem;
+  color: #aeaeb2;
+}
+
+/* ── Custom Recharts tooltip ─────────────────────────────────────────────── */
+.tooltip {
+  background: #1d1d1f;
+  border-radius: 8px;
+  padding: 8px 12px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.tooltipLabel {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin: 0 0 2px;
+}
+
+.tooltipValue {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+/* ── Loading skeleton ────────────────────────────────────────────────────── */
+.skeleton {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+}
+
+@keyframes shimmer {
+  0%   { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.skeletonBase {
+  background: linear-gradient(90deg, #e8e8ec 25%, #f5f5f7 50%, #e8e8ec 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.skeletonTabBar {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 1.75rem;
+}
+
+.skeletonTab {
+  height: 38px;
+  width: 160px;
+  border-radius: 8px;
+  background: linear-gradient(90deg, #e8e8ec 25%, #f5f5f7 50%, #e8e8ec 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeletonChart {
+  height: 300px;
+  width: 100%;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #e8e8ec 25%, #f5f5f7 50%, #e8e8ec 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+/* ── Error state ─────────────────────────────────────────────────────────── */
+.errorState {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  min-height: 160px;
+  text-align: center;
+}
+
+.errorText {
+  font-size: 0.9375rem;
+  color: #6e6e73;
+  margin: 0;
+}
+
+.retryButton {
+  display: inline-flex;
+  align-items: center;
+  background: none;
+  border: 1px solid #c8102e;
+  border-radius: 6px;
+  padding: 8px 20px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #c8102e;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease;
+  outline: none;
+
+  &:hover {
+    background: #c8102e;
+    color: #fff;
+  }
+
+  &:focus-visible {
+    outline: 2px solid #c8102e;
+    outline-offset: 2px;
+  }
+}
+
+/* ── Empty state ─────────────────────────────────────────────────────────── */
+.emptyState {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 160px;
+  text-align: center;
+}
+
+.emptyText {
+  font-size: 0.9375rem;
+  color: #aeaeb2;
+  margin: 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .section { padding: 4.5rem 0 5.5rem; }
+  .headingRow { padding: 0 2rem; }
+  .dashboardContent { padding: 0 2rem; }
+  .skeleton { padding: 0 2rem; }
+  .errorState { padding: 0 2rem; }
+  .emptyState { padding: 0 2rem; }
+}
+
+@media (max-width: 768px) {
+  .section { padding: 3rem 0 4rem; }
+  .headingRow {
+    padding: 0 1.25rem;
+    flex-direction: column;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+  }
+  .headingRight { align-items: flex-start; }
+  .dashboardContent { padding: 0 1.25rem; }
+  .skeleton { padding: 0 1.25rem; }
+  .errorState { padding: 0 1.25rem; }
+  .emptyState { padding: 0 1.25rem; }
+  .tabList { flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; &::-webkit-scrollbar { display: none; } }
+  .tab { flex-shrink: 0; padding: 8px 12px; font-size: 0.775rem; }
+  .panel { padding: 1.125rem 1.25rem; border-radius: 10px; }
+  .skeletonTab { width: 120px; }
+}
+
+@media (max-width: 480px) {
+  .section { padding: 2.5rem 0 3rem; }
+  .headingRow { padding: 0 1rem; }
+  .dashboardContent { padding: 0 1rem; }
+  .skeleton { padding: 0 1rem; }
+  .errorState { padding: 0 1rem; }
+  .emptyState { padding: 0 1rem; }
+  .panel { padding: 1rem; }
+}
+
+/* ── Dark mode ───────────────────────────────────────────────────────────── */
+@media (prefers-color-scheme: dark) {
+  .section { background: #1a1a1a; }
+  .heading { color: #f5f5f7; }
+  .totalCount { color: #aeaeb2; }
+  .refreshButton { border-color: #3a3a3c; color: #aeaeb2; }
+  .tabList { border-bottom-color: #3a3a3c; }
+  .tab { color: #aeaeb2; &:hover:not(.tabActive) { color: #f5f5f7; } }
+  .panel { background: #2c2c2e; border-color: #3a3a3c; }
+  .chartDescription { color: #aeaeb2; }
+  .skeletonTab { background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%); background-size: 800px 100%; }
+  .skeletonChart { background: linear-gradient(90deg, #2c2c2e 25%, #3a3a3c 50%, #2c2c2e 75%); background-size: 800px 100%; }
+}
